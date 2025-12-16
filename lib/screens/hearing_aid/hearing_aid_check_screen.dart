@@ -258,29 +258,135 @@ class _HearingAidCheckScreenState extends ConsumerState<HearingAidCheckScreen> {
   Widget _buildResultOverlay() {
     final isDetected = _result?.isDetected == true;
 
+    if (isDetected) {
+      // Erfolg: Grünes Overlay mit Checkmark
+      return Container(
+        color: Colors.green.withValues(alpha: 0.4),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.check_circle,
+                size: 100,
+                color: Colors.white,
+              ).animate().scale(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.elasticOut,
+                  ),
+              const SizedBox(height: 20),
+              const Text(
+                'Super! 🎉',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Hörgeräte erkannt!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Nicht erkannt: Großes Hörgeräte-Symbol anzeigen
     return Container(
-      color: isDetected
-          ? Colors.green.withValues(alpha: 0.3)
-          : Colors.red.withValues(alpha: 0.3),
+      color: Colors.orange.withValues(alpha: 0.9),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              isDetected ? Icons.check_circle : Icons.warning,
-              size: 80,
-              color: Colors.white,
-            ).animate().scale(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.elasticOut,
-                ),
-            const SizedBox(height: 16),
-            Text(
-              isDetected ? 'Hörgeräte erkannt!' : 'Keine Hörgeräte erkannt',
-              style: const TextStyle(
+            // Großes Hörgeräte-Symbol
+            Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
                 color: Colors.white,
-                fontSize: 24,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: const Center(
+                child: Text(
+                  '🦻',
+                  style: TextStyle(fontSize: 80),
+                ),
+              ),
+            )
+                .animate(
+                  onPlay: (controller) => controller.repeat(reverse: true),
+                )
+                .scale(
+                  begin: const Offset(1.0, 1.0),
+                  end: const Offset(1.1, 1.1),
+                  duration: const Duration(milliseconds: 800),
+                  curve: Curves.easeInOut,
+                ),
+            const SizedBox(height: 30),
+
+            // Text
+            const Text(
+              'Bitte Hörgeräte\naufsetzen!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Pfeil nach oben zu den Ohren
+            const Icon(
+              Icons.arrow_upward,
+              size: 40,
+              color: Colors.white,
+            )
+                .animate(
+                  onPlay: (controller) => controller.repeat(),
+                )
+                .moveY(
+                  begin: 0,
+                  end: -10,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                )
+                .then()
+                .moveY(
+                  begin: -10,
+                  end: 0,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                ),
+            const SizedBox(height: 20),
+
+            // Nochmal prüfen Button
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _result = null;
+                });
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Nochmal prüfen'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.orange,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],
