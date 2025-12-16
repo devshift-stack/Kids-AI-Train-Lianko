@@ -10,6 +10,8 @@
 
 Das Parent Dashboard steuert folgende Lianko-Einstellungen für jedes Kind:
 
+### Basis-Einstellungen
+
 | Einstellung | Typ | Default | Beschreibung |
 |-------------|-----|---------|--------------|
 | `subtitlesEnabled` | bool | `false` | Untertitel an/aus |
@@ -17,12 +19,118 @@ Das Parent Dashboard steuert folgende Lianko-Einstellungen für jedes Kind:
 | `speechRate` | double | `0.4` | Sprechgeschwindigkeit (0.3-0.6) |
 | `autoRepeat` | bool | `true` | Bei Fehler automatisch wiederholen |
 | `maxAttempts` | int | `3` | Max. Versuche pro Wort |
+
+### Zeig-Sprech-Modul Einstellungen (NEU)
+
+| Einstellung | Typ | Default | Beschreibung |
+|-------------|-----|---------|--------------|
+| `zeigSprechEnabled` | bool | `false` | Zeig-Sprech-Modul aktiviert |
+| `useChildRecordings` | bool | `true` | Kind-Aufnahmen nutzen statt TTS |
+| `allowReRecording` | bool | `false` | Kind darf Aufnahmen neu aufnehmen |
+
+### Eltern-Aufnahme Einstellungen
+
+| Einstellung | Typ | Default | Beschreibung |
+|-------------|-----|---------|--------------|
 | `parentRecordingEnabled` | bool | `false` | Eltern-Aufnahme aktiviert |
 | `parentRecordingUrl` | string | `null` | URL zur Eltern-Aufnahme (Firebase Storage) |
 
 ---
 
-## Feature: Eltern-Aufnahme (NEU)
+## Feature: Zeig-Sprech-Modul (NEU)
+
+### Was ist das?
+
+Ein AAC-ähnliches Kommunikationsmodul für Kinder, die sich verbal noch nicht ausdrücken können. Das Kind tippt auf Bilder um zu kommunizieren.
+
+### Kategorien im Zeig-Sprech-Modul
+
+| Kategorie | Symbole | Push an Eltern |
+|-----------|---------|----------------|
+| Schmerzen | Kopf, Bauch, Hals, Ohr, Zahn, Bein, Arm | ✅ JA |
+| Essen | Frühstück, Mittagessen, Snack, Abendessen | ❌ |
+| Trinken | Wasser, Saft, Milch, Kakao, Tee | ❌ |
+| Gefühle | Glücklich, Traurig, Wütend, Müde, Ängstlich | ❌ |
+| Aktivitäten | Spielen, Fernsehen, Draußen, Schlafen, Kuscheln | ❌ |
+| Toilette | Toilette, Hände waschen, Baden, Zähne putzen | ❌ |
+| Hilfe | Hilfe brauchen, Nicht verstanden, Nochmal zeigen | ✅ JA |
+| Ja/Nein | Ja, Nein, Vielleicht | ❌ |
+| Menschen | Mama, Papa, Oma, Opa, Geschwister | ✅ JA |
+| Orte | Nach Hause, Rausgehen, Spielplatz, Arzt | ❌ |
+
+### Eltern-Kontrollen für Zeig-Sprech
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  PARENT DASHBOARD - Kind: Lian                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Zeig-Sprech-Modul                                          │
+│  ─────────────────                                          │
+│                                                              │
+│  Modul aktivieren:     [ ] Aus  [x] An                      │
+│                                                              │
+│  ─────────────────────────────────────────────────────────  │
+│                                                              │
+│  Aufnahmen                                                   │
+│                                                              │
+│  Kind-Stimme nutzen:   [ ] Aus  [x] An                      │
+│  (Wenn An: Kind hört eigene Aufnahmen)                      │
+│  (Wenn Aus: App-Stimme/TTS wird genutzt)                    │
+│                                                              │
+│  Neu aufnehmen erlauben: [ ] Aus  [x] An                    │
+│  (Kind kann Wörter selbst neu aufnehmen)                    │
+│                                                              │
+│  ─────────────────────────────────────────────────────────  │
+│                                                              │
+│  Push-Benachrichtigungen                                    │
+│                                                              │
+│  Bei "Schmerzen":      [x] An                               │
+│  Bei "Hilfe":          [x] An                               │
+│  Bei "Menschen rufen": [x] An                               │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Feature: Kind-Aufnahmen
+
+### Wie funktioniert es?
+
+1. Kind öffnet Zeig-Sprech-Modul zum ersten Mal
+2. Setup-Prompt erscheint: "Deine Stimme aufnehmen?"
+3. Kind kann "Aufnehmen" oder "Später" wählen
+4. Bei Aufnahme: Kind spricht jedes Wort, App speichert
+5. Danach hört Kind seine EIGENE Stimme beim Tippen
+
+### Eltern-Kontrolle
+
+- **`useChildRecordings = true`**: Kind hört eigene Stimme
+- **`useChildRecordings = false`**: Kind hört App-Stimme (TTS)
+- **`allowReRecording = true`**: Kind kann selbst neu aufnehmen
+- **`allowReRecording = false`**: Nur Eltern können Aufnahmen ändern
+
+---
+
+## Feature: Rätsel-Spiel
+
+### Was ist das?
+
+Quiz-Spiel basierend auf den Zeig-Sprech-Symbolen:
+- 3-4 Bilder werden angezeigt
+- Ein Wort wird abgespielt (Kind-Aufnahme oder TTS)
+- Kind tippt auf das richtige Bild
+
+### Wichtig für Parent Dashboard
+
+Das Rätsel-Spiel nutzt automatisch:
+- Kind-Aufnahmen (wenn `useChildRecordings = true`)
+- TTS Fallback (wenn keine Aufnahme vorhanden)
+
+---
+
+## Feature: Eltern-Aufnahme (Optional)
 
 ### Was ist das?
 
@@ -35,15 +143,6 @@ Eltern können **eigene Sprachaufnahmen** erstellen, die statt der TTS-Stimme ab
 │  PARENT DASHBOARD - Kind: Lian                              │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
-│  Lianko Einstellungen                                       │
-│  ─────────────────────                                      │
-│                                                              │
-│  Sprache:        [▼ Deutsch]                                │
-│                                                              │
-│  Untertitel:     [ ] Aus  [x] An                            │
-│                                                              │
-│  ─────────────────────────────────────────────────────────  │
-│                                                              │
 │  🎤 Eltern-Aufnahme                                         │
 │                                                              │
 │  [ ] Aus  [x] An                                            │
@@ -53,12 +152,9 @@ Eltern können **eigene Sprachaufnahmen** erstellen, die statt der TTS-Stimme ab
 │  │ Hund     [🎤 Aufnehmen] [▶ Abspielen] [✓ Fertig]   │   │
 │  │ Katze    [🎤 Aufnehmen] [▶ Abspielen] [ ]          │   │
 │  │ Maus     [🎤 Aufnehmen] [ ]           [ ]          │   │
-│  │ Vogel    [🎤 Aufnehmen] [ ]           [ ]          │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                                                              │
 │  Fortschritt: 1/4 Wörter aufgenommen                        │
-│                                                              │
-│  [Alle löschen]                    [Speichern]              │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -74,20 +170,27 @@ Eltern können **eigene Sprachaufnahmen** erstellen, die statt der TTS-Stimme ab
 ├── subtitlesEnabled: false
 ├── language: "de"
 ├── speechRate: 0.4
+├── autoRepeat: true
+├── maxAttempts: 3
+├── zeigSprechEnabled: true
+├── useChildRecordings: true
+├── allowReRecording: false
 ├── parentRecordingEnabled: false
 └── parentRecordings/
     ├── hund: "gs://bucket/recordings/hund_123.mp3"
-    ├── katze: "gs://bucket/recordings/katze_123.mp3"
     └── ...
 ```
 
-### 2. API Endpunkte (Firebase Functions oder direkt Firestore)
+### 2. API Endpunkte
 
 ```dart
-// Einstellung speichern
+// Einstellungen speichern
 Future<void> saveLiankoSettings(String childId, Map<String, dynamic> settings);
 
-// Aufnahme hochladen
+// Einstellung einzeln ändern
+Future<void> updateLiankoSetting(String childId, String key, dynamic value);
+
+// Aufnahme hochladen (Eltern)
 Future<String> uploadParentRecording(String childId, String word, File audioFile);
 
 // Aufnahme löschen
@@ -99,21 +202,32 @@ Future<LiankoSettings> getLiankoSettings(String childId);
 
 ### 3. UI-Komponenten für Parent Dashboard
 
-#### 3.1 Einstellungs-Screen
+#### 3.1 Lianko-Einstellungs-Screen
 
 ```dart
 class LiankoSettingsScreen extends ConsumerWidget {
   final String childId;
 
-  // Zeigt alle Lianko-Einstellungen
-  // - Sprache Dropdown
-  // - Untertitel Toggle
-  // - Eltern-Aufnahme Toggle
-  // - Aufnahme-Liste (wenn aktiviert)
+  // Sections:
+  // 1. Basis-Einstellungen (Sprache, Untertitel, Geschwindigkeit)
+  // 2. Zeig-Sprech-Modul (Toggle, useChildRecordings, allowReRecording)
+  // 3. Eltern-Aufnahme (Toggle, Aufnahme-Liste)
+  // 4. Push-Benachrichtigungen
 }
 ```
 
-#### 3.2 Aufnahme-Widget
+#### 3.2 Zeig-Sprech-Einstellungen Widget
+
+```dart
+class ZeigSprechSettingsWidget extends StatelessWidget {
+  // - Toggle: Modul aktivieren
+  // - Toggle: Kind-Stimme nutzen
+  // - Toggle: Neu aufnehmen erlauben
+  // - Info: Anzahl aufgenommene Wörter (readonly, von Lianko App)
+}
+```
+
+#### 3.3 Aufnahme-Widget (für Eltern-Aufnahmen)
 
 ```dart
 class ParentRecordingWidget extends StatefulWidget {
@@ -128,7 +242,7 @@ class ParentRecordingWidget extends StatefulWidget {
 }
 ```
 
-### 4. Synchronisation mit Lianko App
+### 4. Synchronisation
 
 ```
 ┌─────────────────┐                    ┌─────────────────┐
@@ -137,118 +251,85 @@ class ParentRecordingWidget extends StatefulWidget {
 │  Einstellungen   │───── Firebase ────►│  Lädt Settings  │
 │  speichern       │      Firestore     │  beim Start     │
 │                  │                    │                  │
-│  Aufnahme        │───── Firebase ────►│  Spielt Eltern- │
-│  hochladen       │      Storage       │  Aufnahme ab    │
+│  Kind wählt      │◄──── Firebase ─────│  Symbol getippt │
+│  "Schmerzen"     │      (Push)        │  → Push senden  │
 └─────────────────┘                    └─────────────────┘
 ```
 
 ---
 
-## Wortlisten für Aufnahmen
+## Wortlisten (Kategorien)
 
-### Standard-Wortlisten (Kategorien)
+### Zeig-Sprech Kategorien
 
 ```yaml
-tiere:
-  - Hund
-  - Katze
-  - Maus
-  - Vogel
-  - Fisch
-  - Pferd
-  - Kuh
-  - Schwein
+schmerzen:
+  - Kopf tut weh
+  - Bauch tut weh
+  - Hals tut weh
+  - Ohr tut weh
+  - Zahn tut weh
+  - Bein tut weh
+  - Arm tut weh
 
-familie:
+essen:
+  - Frühstück (→ Müsli, Brot, Ei)
+  - Mittagessen
+  - Snack (→ Obst, Kekse, Süßigkeiten)
+  - Abendessen
+
+trinken:
+  - Wasser
+  - Saft
+  - Milch
+  - Kakao
+  - Tee
+
+gefuehle:
+  - Glücklich
+  - Traurig
+  - Wütend
+  - Müde
+  - Ängstlich
+  - Langweilig
+
+aktivitaeten:
+  - Spielen
+  - Fernsehen
+  - Draußen
+  - Schlafen
+  - Kuscheln
+  - Vorlesen
+
+toilette:
+  - Toilette
+  - Hände waschen
+  - Baden
+  - Zähne putzen
+
+hilfe:
+  - Ich brauche Hilfe
+  - Ich verstehe nicht
+  - Nochmal zeigen
+
+janein:
+  - Ja
+  - Nein
+  - Vielleicht
+
+menschen:
   - Mama
   - Papa
   - Oma
   - Opa
-  - Bruder
-  - Schwester
+  - Geschwister
 
-zahlen:
-  - Eins
-  - Zwei
-  - Drei
-  - Vier
-  - Fünf
-
-farben:
-  - Rot
-  - Blau
-  - Grün
-  - Gelb
+orte:
+  - Nach Hause
+  - Rausgehen
+  - Spielplatz
+  - Arzt
 ```
-
-### Eltern können eigene Wörter hinzufügen
-
-```
-[+ Eigenes Wort hinzufügen]
-┌─────────────────────────┐
-│ Wort: [_______________] │
-│                         │
-│ [Abbrechen] [Hinzufügen]│
-└─────────────────────────┘
-```
-
----
-
-## Ablauf im Parent Dashboard
-
-### Schritt 1: Lianko-Einstellungen öffnen
-
-```
-Dashboard → Kind auswählen → Lianko Einstellungen
-```
-
-### Schritt 2: Eltern-Aufnahme aktivieren
-
-```
-Toggle: Eltern-Aufnahme [AUS] → [AN]
-```
-
-### Schritt 3: Kategorie wählen
-
-```
-[Tiere] [Familie] [Zahlen] [Farben] [Eigene]
-```
-
-### Schritt 4: Wörter aufnehmen
-
-```
-1. Wort antippen
-2. 🎤 drücken und sprechen
-3. ⏹️ drücken zum Beenden
-4. ▶️ zum Kontrollieren
-5. ✓ wenn zufrieden
-```
-
-### Schritt 5: Speichern
-
-```
-[Speichern] → Sync mit Lianko App
-```
-
----
-
-## Fehlerbehandlung
-
-| Fehler | Lösung |
-|--------|--------|
-| Mikrofon nicht erlaubt | Permission-Dialog anzeigen |
-| Upload fehlgeschlagen | Retry-Button, offline speichern |
-| Aufnahme zu kurz (<0.5s) | "Aufnahme zu kurz, bitte nochmal" |
-| Aufnahme zu lang (>10s) | "Maximal 10 Sekunden" |
-
----
-
-## Sicherheit
-
-- Aufnahmen nur für eigene Kinder
-- Firebase Storage Rules prüfen parentId
-- Aufnahmen werden verschlüsselt gespeichert
-- Löschung löscht auch aus Storage
 
 ---
 
@@ -256,11 +337,35 @@ Toggle: Eltern-Aufnahme [AUS] → [AN]
 
 **Du musst implementieren:**
 
-1. ✅ UI für Lianko-Einstellungen (Sprache, Untertitel, etc.)
-2. ✅ Toggle für Eltern-Aufnahme aktivieren
-3. ✅ Aufnahme-Widget (Record, Play, Delete)
-4. ✅ Upload zu Firebase Storage
+### Pflicht:
+1. ✅ UI für Basis-Einstellungen (Sprache, Untertitel, Geschwindigkeit)
+2. ✅ Toggle für Zeig-Sprech-Modul aktivieren (`zeigSprechEnabled`)
+3. ✅ Toggle für Kind-Stimme nutzen (`useChildRecordings`)
+4. ✅ Toggle für Neu aufnehmen erlauben (`allowReRecording`)
 5. ✅ Sync der Settings zu Firestore
-6. ✅ Wortlisten-Verwaltung
 
-**Lianko App liest diese Settings und spielt Eltern-Aufnahmen ab (wenn vorhanden).**
+### Optional:
+6. ⭕ Eltern-Aufnahme Feature (Toggle, Aufnahme-Widget, Upload)
+7. ⭕ Push-Benachrichtigungen konfigurieren
+8. ⭕ Statistik: Wie viele Wörter hat Kind aufgenommen
+
+---
+
+## Code-Referenz
+
+Die Lianko-App erwartet diese Settings-Struktur:
+
+```dart
+class ChildSettings {
+  final bool subtitlesEnabled;      // default: false
+  final String language;            // default: "bs"
+  final double speechRate;          // default: 0.4
+  final bool autoRepeat;            // default: true
+  final int maxAttempts;            // default: 3
+  final bool zeigSprechEnabled;     // default: false
+  final bool useChildRecordings;    // default: true
+  final bool allowReRecording;      // default: false
+}
+```
+
+Siehe: `Kids-AI-Train-Lianko/lib/services/child_settings_service.dart`
