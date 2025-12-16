@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../services/hearing_aid_detection_service.dart';
+import '../../services/parent_notification_service.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Screen zur Hörgeräte-Überprüfung
@@ -58,6 +59,7 @@ class _HearingAidCheckScreenState extends ConsumerState<HearingAidCheckScreen> {
     });
 
     final service = ref.read(hearingAidDetectionServiceProvider);
+    final notificationService = ref.read(parentNotificationServiceProvider);
     final result = await service.captureAndAnalyze();
 
     if (mounted) {
@@ -65,6 +67,12 @@ class _HearingAidCheckScreenState extends ConsumerState<HearingAidCheckScreen> {
         _result = result;
         _isAnalyzing = false;
       });
+
+      // Log result for parent tracking
+      await notificationService.logHearingAidCheck(
+        wasWearing: result.isDetected,
+        context: 'Video/YouTube Zugriff',
+      );
 
       if (result.isDetected) {
         // Erfolg! Kurz warten und dann weiter

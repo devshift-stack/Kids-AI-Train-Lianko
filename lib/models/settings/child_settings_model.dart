@@ -189,6 +189,11 @@ class LiankoSettings {
   final bool hearingAidCheckEnabled; // Hörgeräte-Check vor YouTube/Videos
   final bool requireBothEars;        // Beide Ohren müssen Hörgeräte haben
 
+  // Eltern-Benachrichtigungen
+  final bool notifyParentOnNoHearingAid;  // Push wenn keine Hörgeräte
+  final bool notifyParentOnDifficulty;    // Push bei Lern-Schwierigkeiten
+  final bool dailySummaryEnabled;          // Tägliche Zusammenfassung senden
+
   LiankoSettings({
     required this.zeigSprechEnabled,
     required this.useChildRecordings,
@@ -200,6 +205,9 @@ class LiankoSettings {
     required this.parentRecordingEnabled,
     required this.hearingAidCheckEnabled,
     required this.requireBothEars,
+    required this.notifyParentOnNoHearingAid,
+    required this.notifyParentOnDifficulty,
+    required this.dailySummaryEnabled,
   });
 
   factory LiankoSettings.fromMap(Map<String, dynamic> map) {
@@ -214,6 +222,9 @@ class LiankoSettings {
       parentRecordingEnabled: map['parentRecordingEnabled'] ?? false,
       hearingAidCheckEnabled: map['hearingAidCheckEnabled'] ?? true,
       requireBothEars: map['requireBothEars'] ?? false,
+      notifyParentOnNoHearingAid: map['notifyParentOnNoHearingAid'] ?? true,
+      notifyParentOnDifficulty: map['notifyParentOnDifficulty'] ?? true,
+      dailySummaryEnabled: map['dailySummaryEnabled'] ?? false,
     );
   }
 
@@ -227,8 +238,11 @@ class LiankoSettings {
       autoRepeat: true,
       maxAttempts: 3,
       parentRecordingEnabled: false,
-      hearingAidCheckEnabled: true,  // Standard: AN
-      requireBothEars: false,        // Standard: Ein Ohr reicht
+      hearingAidCheckEnabled: true,       // Standard: AN
+      requireBothEars: false,             // Standard: Ein Ohr reicht
+      notifyParentOnNoHearingAid: true,   // Standard: AN
+      notifyParentOnDifficulty: true,     // Standard: AN
+      dailySummaryEnabled: false,         // Standard: AUS
     );
   }
 
@@ -243,6 +257,9 @@ class LiankoSettings {
     'parentRecordingEnabled': parentRecordingEnabled,
     'hearingAidCheckEnabled': hearingAidCheckEnabled,
     'requireBothEars': requireBothEars,
+    'notifyParentOnNoHearingAid': notifyParentOnNoHearingAid,
+    'notifyParentOnDifficulty': notifyParentOnDifficulty,
+    'dailySummaryEnabled': dailySummaryEnabled,
   };
 }
 
