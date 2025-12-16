@@ -77,3 +77,25 @@ flutter:
 
   assets:
     - assets/locales/
+    # Communication (Zeig-Sprech)
+    - assets/communication/schmerzen/
+    - assets/communication/essen/
+    - assets/communication/trinken/
+    - assets/communication/gefuehle/
+    - assets/communication/aktivitaeten/
+    - assets/communication/toilette/
+    - assets/communication/hilfe/
+    - assets/communication/janein/
+    - assets/communication/menschen/
+    - assets/communication/orte/
+    # Vocabulary
+    - assets/vocabulary/tiere/
+    - assets/vocabulary/familie/
+    - assets/vocabulary/essen/
+    - assets/vocabulary/koerper/
+    - assets/vocabulary/farben/
+    - assets/vocabulary/zahlen/
+    # Syllables & Stories
+    - assets/syllables/
+    - assets/stories/der_kleine_hund/
+    - assets/stories/die_bunte_katze/
