@@ -103,5 +103,8 @@ flutter:
     - assets/vocabulary/zahlen/
     # Syllables & Stories
     - assets/syllables/
+    - assets/stories/
     - assets/stories/der_kleine_hund/
     - assets/stories/die_bunte_katze/
+    # Games
+    - assets/games/
