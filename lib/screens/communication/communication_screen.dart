@@ -171,20 +171,20 @@ class _CommunicationScreenState extends ConsumerState<CommunicationScreen> {
   }
 
   Widget _buildQuickAnswers() {
-    final jaНein = CommunicationData.jaНein;
+    final jaNein = CommunicationData.jaNein;
     final service = ref.read(childRecordingServiceProvider);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        children: jaНein.symbols.map((symbol) {
+        children: jaNein.symbols.map((symbol) {
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: _QuickAnswerButton(
                 symbol: symbol,
-                color: Color(jaНein.colorValue),
+                color: Color(jaNein.colorValue),
                 onTap: () => _playSymbol(service, symbol),
               ),
             ),

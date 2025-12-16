@@ -51,7 +51,6 @@ class _StoriesGameScreenState extends ConsumerState<StoriesGameScreen> {
     final profile = ref.read(activeProfileProvider);
     final age = profile?.age ?? 6;
     final adaptive = ref.read(adaptiveLearningServiceProvider);
-    final params = adaptive.getGameParameters(GameType.stories);
 
     ref.read(alanVoiceServiceProvider).speak(
       'Čekaj malo, smišljam priču...',

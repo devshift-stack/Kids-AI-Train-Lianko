@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart' show Color;
+
 /// Ein einzelnes Wort im Wortschatz
 class VocabularyWord {
   final String word;
@@ -18,22 +20,19 @@ class VocabularyCategory {
   final String id;
   final String name;
   final String icon;
-  final Color color;
+  final int colorValue; // Farbe als int für const
   final List<VocabularyWord> words;
 
   const VocabularyCategory({
     required this.id,
     required this.name,
     required this.icon,
-    required this.color,
+    required this.colorValue,
     required this.words,
   });
-}
 
-/// Farbe als separate Klasse für const
-class Color {
-  final int value;
-  const Color(this.value);
+  /// Holt die Flutter Color
+  Color get color => Color(colorValue);
 }
 
 /// Vordefinierte Wortschatz-Kategorien
@@ -42,7 +41,7 @@ class VocabularyData {
     id: 'tiere',
     name: 'Tiere',
     icon: '🐾',
-    color: Color(0xFF4CAF50),
+    colorValue: 0xFF4CAF50,
     words: [
       VocabularyWord(word: 'Hund', imageUrl: 'assets/vocabulary/tiere/hund.png', category: 'tiere'),
       VocabularyWord(word: 'Katze', imageUrl: 'assets/vocabulary/tiere/katze.png', category: 'tiere'),
@@ -61,7 +60,7 @@ class VocabularyData {
     id: 'familie',
     name: 'Familie',
     icon: '👨‍👩‍👧‍👦',
-    color: Color(0xFFE91E63),
+    colorValue: 0xFFE91E63,
     words: [
       VocabularyWord(word: 'Mama', imageUrl: 'assets/vocabulary/familie/mama.png', category: 'familie'),
       VocabularyWord(word: 'Papa', imageUrl: 'assets/vocabulary/familie/papa.png', category: 'familie'),
@@ -79,7 +78,7 @@ class VocabularyData {
     id: 'essen',
     name: 'Essen',
     icon: '🍎',
-    color: Color(0xFFFF9800),
+    colorValue: 0xFFFF9800,
     words: [
       VocabularyWord(word: 'Apfel', imageUrl: 'assets/vocabulary/essen/apfel.png', category: 'essen'),
       VocabularyWord(word: 'Banane', imageUrl: 'assets/vocabulary/essen/banane.png', category: 'essen'),
@@ -96,7 +95,7 @@ class VocabularyData {
     id: 'koerper',
     name: 'Körper',
     icon: '🖐️',
-    color: Color(0xFF2196F3),
+    colorValue: 0xFF2196F3,
     words: [
       VocabularyWord(word: 'Hand', imageUrl: 'assets/vocabulary/koerper/hand.png', category: 'koerper'),
       VocabularyWord(word: 'Fuß', imageUrl: 'assets/vocabulary/koerper/fuss.png', category: 'koerper'),
@@ -113,7 +112,7 @@ class VocabularyData {
     id: 'farben',
     name: 'Farben',
     icon: '🌈',
-    color: Color(0xFF9C27B0),
+    colorValue: 0xFF9C27B0,
     words: [
       VocabularyWord(word: 'Rot', imageUrl: 'assets/vocabulary/farben/rot.png', category: 'farben'),
       VocabularyWord(word: 'Blau', imageUrl: 'assets/vocabulary/farben/blau.png', category: 'farben'),
@@ -131,7 +130,7 @@ class VocabularyData {
     id: 'zahlen',
     name: 'Zahlen',
     icon: '🔢',
-    color: Color(0xFF00BCD4),
+    colorValue: 0xFF00BCD4,
     words: [
       VocabularyWord(word: 'Eins', imageUrl: 'assets/vocabulary/zahlen/1.png', category: 'zahlen'),
       VocabularyWord(word: 'Zwei', imageUrl: 'assets/vocabulary/zahlen/2.png', category: 'zahlen'),

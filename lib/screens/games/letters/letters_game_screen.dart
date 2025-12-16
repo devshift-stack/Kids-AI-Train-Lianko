@@ -390,7 +390,6 @@ class _LettersGameScreenState extends ConsumerState<LettersGameScreen>
   }
 
   Widget _buildOptionCard(GameItem option) {
-    final bool isSelected = _showResult && option.id == _currentLetter.id;
     final bool isWrong = _showResult && !_isCorrect && option.id != _currentLetter.id;
 
     Color backgroundColor = Colors.white;

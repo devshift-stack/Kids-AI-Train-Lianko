@@ -17,7 +17,6 @@ class TimeLimitService {
   static const String _sessionStartKey = 'session_start_time';
 
   Timer? _sessionTimer;
-  int _currentSessionMinutes = 0;
 
   /// Prüft ob das Kind noch spielen darf
   Future<TimeLimitStatus> checkTimeLimit(TimeLimit? timeLimit) async {
@@ -66,12 +65,10 @@ class TimeLimitService {
   Future<void> startSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_sessionStartKey, DateTime.now().toIso8601String());
-    _currentSessionMinutes = 0;
 
     // Timer starten (jede Minute aktualisieren)
     _sessionTimer?.cancel();
     _sessionTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
-      _currentSessionMinutes++;
       await _addPlayTime(1);
     });
   }
@@ -94,7 +91,6 @@ class TimeLimitService {
   void resumeSession() {
     if (_sessionTimer == null || !_sessionTimer!.isActive) {
       _sessionTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
-        _currentSessionMinutes++;
         await _addPlayTime(1);
       });
     }

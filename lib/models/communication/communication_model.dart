@@ -261,7 +261,7 @@ class CommunicationData {
   );
 
   // 8. Ja/Nein - Schnellantworten
-  static const jaНein = CommunicationCategory(
+  static const jaNein = CommunicationCategory(
     id: 'janein',
     name: 'Ja/Nein',
     icon: '✅',
@@ -311,7 +311,7 @@ class CommunicationData {
     aktivitaeten,
     toilette,
     hilfe,
-    jaНein,
+    jaNein,
     menschen,
     orte,
   ];
