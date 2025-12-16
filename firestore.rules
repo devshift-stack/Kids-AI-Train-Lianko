@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================
+    // KIDS-AI-TRAIN FIRESTORE RULES
+    // Für: Lianko, Alanko, ParentsDash
+    // ============================================================
+
+    // ------------------------------------------------------------
+    // ELTERN (parents collection)
+    // ------------------------------------------------------------
+    match /parents/{parentId} {
+      // Nur der Elternteil selbst kann sein Dokument lesen/schreiben
+      allow read, write: if request.auth != null &&
+                         request.auth.uid == parentId;
+
+      // Co-Parent kann lesen wenn eingeladen
+      allow read: if request.auth != null &&
+                  resource.data.coParents[request.auth.uid] == true;
+    }
+
+    // ------------------------------------------------------------
+    // KINDER (children collection)
+    // ------------------------------------------------------------
+    match /children/{childId} {
+
+      // LESEN erlaubt für:
+      // 1. Elternteil (parentId)
+      // 2. Co-Parent (in coParents Map)
+      // 3. Verknüpftes Kind-Gerät (in linkedDeviceIds)
+      allow read: if request.auth != null && (
+        resource.data.parentId == request.auth.uid ||
+        resource.data.coParents[request.auth.uid] == true ||
+        request.auth.uid in resource.data.linkedDeviceIds
+      );
+
+      // SCHREIBEN (Settings ändern) nur für Eltern
+      allow update: if request.auth != null && (
+        resource.data.parentId == request.auth.uid ||
+        resource.data.coParents[request.auth.uid] == true
+      );
+
+      // ERSTELLEN nur für authentifizierte Eltern
+      allow create: if request.auth != null &&
+                    request.resource.data.parentId == request.auth.uid;
+
+      // LÖSCHEN nur für Hauptelternteil
+      allow delete: if request.auth != null &&
+                    resource.data.parentId == request.auth.uid;
+
+      // --------------------------------------------------------
+      // Kind-Gerät darf nur bestimmte Felder aktualisieren
+      // --------------------------------------------------------
+      allow update: if request.auth != null &&
+                    request.auth.uid in resource.data.linkedDeviceIds &&
+                    onlyUpdatesAllowedFields();
+
+      function onlyUpdatesAllowedFields() {
+        let allowedFields = ['lastActiveAt', 'currentGame', 'todayPlayTime'];
+        let changedFields = request.resource.data.diff(resource.data).affectedKeys();
+        return changedFields.hasOnly(allowedFields);
+      }
+
+      // --------------------------------------------------------
+      // Sub-Collections
+      // --------------------------------------------------------
+
+      // Lernfortschritt (nur Kind-Gerät schreibt, Eltern lesen)
+      match /progress/{progressId} {
+        allow read: if request.auth != null && (
+          get(/databases/$(database)/documents/children/$(childId)).data.parentId == request.auth.uid ||
+          request.auth.uid in get(/databases/$(database)/documents/children/$(childId)).data.linkedDeviceIds
+        );
+        allow write: if request.auth != null &&
+                     request.auth.uid in get(/databases/$(database)/documents/children/$(childId)).data.linkedDeviceIds;
+      }
+
+      // Aufnahmen (Kind + Eltern können schreiben)
+      match /recordings/{recordingId} {
+        allow read, write: if request.auth != null && (
+          get(/databases/$(database)/documents/children/$(childId)).data.parentId == request.auth.uid ||
+          request.auth.uid in get(/databases/$(database)/documents/children/$(childId)).data.linkedDeviceIds
+        );
+      }
+
+      // Aktivitäts-Log (nur Kind schreibt, Eltern lesen)
+      match /activityLog/{logId} {
+        allow read: if request.auth != null &&
+                    get(/databases/$(database)/documents/children/$(childId)).data.parentId == request.auth.uid;
+        allow create: if request.auth != null &&
+                      request.auth.uid in get(/databases/$(database)/documents/children/$(childId)).data.linkedDeviceIds;
+      }
+    }
+
+    // ------------------------------------------------------------
+    // PARENT-CODE VALIDIERUNG (für Verknüpfung)
+    // ------------------------------------------------------------
+    // Kind-Geräte dürfen nach gültigem Code suchen
+    match /children/{childId} {
+      allow read: if request.auth != null &&
+                  resource.data.parentCode != null &&
+                  resource.data.parentCodeExpiresAt > request.time;
+    }
+
+    // ------------------------------------------------------------
+    // GLOBALE INHALTE (öffentlich lesbar)
+    // ------------------------------------------------------------
+    match /content/{contentId} {
+      allow read: if true;  // Geschichten, Wortlisten, etc.
+      allow write: if false; // Nur Admin via Console
+    }
+
+    match /wordLists/{listId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ------------------------------------------------------------
+    // LEADERBOARD (optional, wenn aktiviert)
+    // ------------------------------------------------------------
+    match /leaderboard/{entryId} {
+      // Lesen nur wenn Kind Leaderboard sehen darf
+      allow read: if request.auth != null;
+
+      // Schreiben nur wenn Kind auf Leaderboard sein darf
+      allow create, update: if request.auth != null &&
+                            exists(/databases/$(database)/documents/children/$(request.resource.data.childId)) &&
+                            get(/databases/$(database)/documents/children/$(request.resource.data.childId)).data.leaderboardConsent.canBeOnLeaderboard == true;
+    }
+
+  }
+}
