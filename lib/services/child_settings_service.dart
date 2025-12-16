@@ -9,12 +9,20 @@ class ChildSettings {
   final bool autoRepeat;            // Automatisch wiederholen bei Fehler
   final int maxAttempts;            // Max. Versuche pro Wort
 
+  // Zeig-Sprech-Modul Einstellungen
+  final bool zeigSprechEnabled;     // Modul aktiviert (default: aus)
+  final bool useChildRecordings;    // Kind-Aufnahmen nutzen statt TTS (default: ja)
+  final bool allowReRecording;      // Kind darf neu aufnehmen (Eltern-Genehmigung)
+
   const ChildSettings({
     this.subtitlesEnabled = false,  // Standard: AUS
     this.language = 'bs',
     this.speechRate = 0.4,
     this.autoRepeat = true,
     this.maxAttempts = 3,
+    this.zeigSprechEnabled = false, // Standard: AUS (Eltern aktivieren)
+    this.useChildRecordings = true, // Standard: JA (Kind-Stimme nutzen)
+    this.allowReRecording = false,  // Standard: NEIN (Eltern müssen erlauben)
   });
 
   ChildSettings copyWith({
@@ -23,6 +31,9 @@ class ChildSettings {
     double? speechRate,
     bool? autoRepeat,
     int? maxAttempts,
+    bool? zeigSprechEnabled,
+    bool? useChildRecordings,
+    bool? allowReRecording,
   }) {
     return ChildSettings(
       subtitlesEnabled: subtitlesEnabled ?? this.subtitlesEnabled,
@@ -30,6 +41,9 @@ class ChildSettings {
       speechRate: speechRate ?? this.speechRate,
       autoRepeat: autoRepeat ?? this.autoRepeat,
       maxAttempts: maxAttempts ?? this.maxAttempts,
+      zeigSprechEnabled: zeigSprechEnabled ?? this.zeigSprechEnabled,
+      useChildRecordings: useChildRecordings ?? this.useChildRecordings,
+      allowReRecording: allowReRecording ?? this.allowReRecording,
     );
   }
 
@@ -39,6 +53,9 @@ class ChildSettings {
     'speechRate': speechRate,
     'autoRepeat': autoRepeat,
     'maxAttempts': maxAttempts,
+    'zeigSprechEnabled': zeigSprechEnabled,
+    'useChildRecordings': useChildRecordings,
+    'allowReRecording': allowReRecording,
   };
 
   factory ChildSettings.fromJson(Map<String, dynamic> json) {
@@ -48,6 +65,9 @@ class ChildSettings {
       speechRate: (json['speechRate'] ?? 0.4).toDouble(),
       autoRepeat: json['autoRepeat'] ?? true,
       maxAttempts: json['maxAttempts'] ?? 3,
+      zeigSprechEnabled: json['zeigSprechEnabled'] ?? false,
+      useChildRecordings: json['useChildRecordings'] ?? true,
+      allowReRecording: json['allowReRecording'] ?? false,
     );
   }
 }
@@ -67,6 +87,9 @@ class ChildSettingsService {
       speechRate: prefs.getDouble('${_keyPrefix}${childId}_speechRate') ?? 0.4,
       autoRepeat: prefs.getBool('${_keyPrefix}${childId}_autoRepeat') ?? true,
       maxAttempts: prefs.getInt('${_keyPrefix}${childId}_maxAttempts') ?? 3,
+      zeigSprechEnabled: prefs.getBool('${_keyPrefix}${childId}_zeigSprech') ?? false,
+      useChildRecordings: prefs.getBool('${_keyPrefix}${childId}_useChildRec') ?? true,
+      allowReRecording: prefs.getBool('${_keyPrefix}${childId}_allowReRec') ?? false,
     );
   }
 
@@ -79,6 +102,9 @@ class ChildSettingsService {
     await prefs.setDouble('${_keyPrefix}${childId}_speechRate', settings.speechRate);
     await prefs.setBool('${_keyPrefix}${childId}_autoRepeat', settings.autoRepeat);
     await prefs.setInt('${_keyPrefix}${childId}_maxAttempts', settings.maxAttempts);
+    await prefs.setBool('${_keyPrefix}${childId}_zeigSprech', settings.zeigSprechEnabled);
+    await prefs.setBool('${_keyPrefix}${childId}_useChildRec', settings.useChildRecordings);
+    await prefs.setBool('${_keyPrefix}${childId}_allowReRec', settings.allowReRecording);
   }
 
   /// Setzt nur Untertitel an/aus
