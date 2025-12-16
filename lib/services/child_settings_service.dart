@@ -1,7 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/settings/child_settings_model.dart';
+import '../providers/child_settings_provider.dart';
 
-/// Einstellungen für ein Kind - werden vom Parent Dashboard gesteuert
+/// Lokale Einstellungen für ein Kind (SharedPreferences)
+/// Diese werden als Fallback genutzt wenn keine Firestore-Verbindung besteht
 class ChildSettings {
   final bool subtitlesEnabled;      // Untertitel an/aus (default: aus)
   final String language;            // Sprache (default: bs)
@@ -70,15 +74,32 @@ class ChildSettings {
       allowReRecording: json['allowReRecording'] ?? false,
     );
   }
+
+  /// Konvertiert von LiankoSettings (Firestore Model)
+  factory ChildSettings.fromLiankoSettings(LiankoSettings liankoSettings, AccessibilitySettings accessibility) {
+    return ChildSettings(
+      subtitlesEnabled: accessibility.subtitlesEnabled,
+      language: liankoSettings.language,
+      speechRate: liankoSettings.speechRate,
+      autoRepeat: liankoSettings.autoRepeat,
+      maxAttempts: liankoSettings.maxAttempts,
+      zeigSprechEnabled: liankoSettings.zeigSprechEnabled,
+      useChildRecordings: liankoSettings.useChildRecordings,
+      allowReRecording: liankoSettings.allowReRecording,
+    );
+  }
 }
 
 /// Service zum Laden/Speichern der Kind-Einstellungen
-/// Diese werden vom Parent Dashboard über Firebase/SharedPreferences synchronisiert
+/// Nutzt Firestore für Echtzeit-Sync, SharedPreferences als Fallback
 class ChildSettingsService {
   static const _keyPrefix = 'lianko_child_';
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Lädt Einstellungen für ein Kind
-  Future<ChildSettings> loadSettings(String childId) async {
+  // ==================== Lokale Methoden (SharedPreferences) ====================
+
+  /// Lädt Einstellungen aus lokalem Speicher
+  Future<ChildSettings> loadLocalSettings(String childId) async {
     final prefs = await SharedPreferences.getInstance();
 
     return ChildSettings(
@@ -93,8 +114,8 @@ class ChildSettingsService {
     );
   }
 
-  /// Speichert Einstellungen für ein Kind (wird vom Parent Dashboard aufgerufen)
-  Future<void> saveSettings(String childId, ChildSettings settings) async {
+  /// Speichert Einstellungen in lokalem Speicher (Cache)
+  Future<void> saveLocalSettings(String childId, ChildSettings settings) async {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.setBool('${_keyPrefix}${childId}_subtitles', settings.subtitlesEnabled);
@@ -107,16 +128,114 @@ class ChildSettingsService {
     await prefs.setBool('${_keyPrefix}${childId}_allowReRec', settings.allowReRecording);
   }
 
+  // ==================== Firestore Methoden (Remote Sync) ====================
+
+  /// Lädt Einstellungen aus Firestore
+  Future<ChildSettings?> loadFromFirestore(String childId) async {
+    try {
+      final doc = await _firestore.collection('children').doc(childId).get();
+      if (!doc.exists) return null;
+
+      final data = doc.data() as Map<String, dynamic>;
+      final liankoSettings = LiankoSettings.fromMap(data['liankoSettings'] ?? {});
+      final accessibility = AccessibilitySettings.fromMap(data['accessibilitySettings'] ?? {});
+
+      return ChildSettings.fromLiankoSettings(liankoSettings, accessibility);
+    } catch (e) {
+      // Firestore nicht verfügbar, nutze lokale Daten
+      return null;
+    }
+  }
+
+  /// Speichert Lianko-spezifische Einstellungen in Firestore
+  Future<void> saveToFirestore(String childId, ChildSettings settings) async {
+    try {
+      await _firestore.collection('children').doc(childId).update({
+        'liankoSettings': {
+          'zeigSprechEnabled': settings.zeigSprechEnabled,
+          'useChildRecordings': settings.useChildRecordings,
+          'allowReRecording': settings.allowReRecording,
+          'speechRate': settings.speechRate,
+          'language': settings.language,
+          'autoRepeat': settings.autoRepeat,
+          'maxAttempts': settings.maxAttempts,
+          'parentRecordingEnabled': false,
+        },
+        'accessibilitySettings': {
+          'subtitlesEnabled': settings.subtitlesEnabled,
+          'subtitleLanguage': settings.language,
+        },
+      });
+    } catch (e) {
+      // Firestore nicht verfügbar, nur lokal speichern
+    }
+  }
+
+  // ==================== Hybride Methoden (Firestore + Local) ====================
+
+  /// Lädt Einstellungen (Firestore first, Local fallback)
+  Future<ChildSettings> loadSettings(String childId) async {
+    // 1. Versuche aus Firestore zu laden
+    final firestoreSettings = await loadFromFirestore(childId);
+    if (firestoreSettings != null) {
+      // Cache lokal
+      await saveLocalSettings(childId, firestoreSettings);
+      return firestoreSettings;
+    }
+
+    // 2. Fallback: Lokale Daten
+    return loadLocalSettings(childId);
+  }
+
+  /// Speichert Einstellungen (Lokal + Firestore)
+  Future<void> saveSettings(String childId, ChildSettings settings) async {
+    // 1. Immer lokal speichern
+    await saveLocalSettings(childId, settings);
+
+    // 2. Versuche Firestore zu aktualisieren
+    await saveToFirestore(childId, settings);
+  }
+
+  /// Stream für Echtzeit-Sync aus Firestore
+  Stream<ChildSettings> watchSettings(String childId) {
+    return _firestore
+        .collection('children')
+        .doc(childId)
+        .snapshots()
+        .map((doc) {
+          if (!doc.exists) return const ChildSettings();
+
+          final data = doc.data() as Map<String, dynamic>;
+          final liankoSettings = LiankoSettings.fromMap(data['liankoSettings'] ?? {});
+          final accessibility = AccessibilitySettings.fromMap(data['accessibilitySettings'] ?? {});
+
+          return ChildSettings.fromLiankoSettings(liankoSettings, accessibility);
+        });
+  }
+
   /// Setzt nur Untertitel an/aus
   Future<void> setSubtitles(String childId, bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('${_keyPrefix}${childId}_subtitles', enabled);
+
+    try {
+      await _firestore.collection('children').doc(childId).update({
+        'accessibilitySettings.subtitlesEnabled': enabled,
+      });
+    } catch (_) {}
   }
 
   /// Setzt nur Sprache
   Future<void> setLanguage(String childId, String language) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('${_keyPrefix}${childId}_language', language);
+
+    try {
+      await _firestore.collection('children').doc(childId).update({
+        'liankoSettings.language': language,
+        'accessibilitySettings.subtitleLanguage': language,
+      });
+    } catch (_) {}
   }
 }
 
@@ -125,14 +244,28 @@ final childSettingsServiceProvider = Provider<ChildSettingsService>((ref) {
   return ChildSettingsService();
 });
 
-/// Provider für aktuelle Kind-Einstellungen
-/// childId muss übergeben werden
-final childSettingsProvider = FutureProvider.family<ChildSettings, String>((ref, childId) async {
+/// Provider für aktuelle Kind-Einstellungen (mit childId)
+final localChildSettingsProvider = FutureProvider.family<ChildSettings, String>((ref, childId) async {
   final service = ref.watch(childSettingsServiceProvider);
   return service.loadSettings(childId);
+});
+
+/// Stream Provider für Echtzeit-Sync der lokalen Settings
+final localChildSettingsStreamProvider = StreamProvider.family<ChildSettings, String>((ref, childId) {
+  final service = ref.watch(childSettingsServiceProvider);
+  return service.watchSettings(childId);
 });
 
 /// Globale Einstellungen (ohne childId, für einfache Fälle)
 final currentChildSettingsProvider = StateProvider<ChildSettings>((ref) {
   return const ChildSettings(); // Default: Untertitel AUS
+});
+
+/// Provider der die aktuellen Settings aus dem Firestore-Model konvertiert
+final liankoChildSettingsProvider = Provider<ChildSettings>((ref) {
+  final fullSettings = ref.watch(childSettingsProvider);
+  return ChildSettings.fromLiankoSettings(
+    fullSettings.liankoSettings,
+    fullSettings.accessibility,
+  );
 });
