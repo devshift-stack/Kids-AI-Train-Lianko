@@ -106,6 +106,19 @@ service cloud.firestore {
         // No updates or deletes (immutable log)
         allow update, delete: if false;
       }
+
+      // --------------------------------------------------------
+      // SETTINGS SUBCOLLECTION (Parent-controlled settings)
+      // --------------------------------------------------------
+
+      match /settings/{settingId} {
+        // Child can read settings (e.g., YouTube settings)
+        allow read: if isOwner(userId);
+
+        // Only parent can write settings (via linkedChildren)
+        // For now, allow owner to write (will be restricted via parent link later)
+        allow write: if isOwner(userId);
+      }
     }
 
     // ============================================================
