@@ -70,6 +70,11 @@ dependencies:
   image: ^4.1.7
   url_launcher: ^6.2.5
 
+  # Premium Features (Lianko)
+  pdf: ^3.10.8
+  share_plus: ^7.2.2
+  image_picker: ^1.0.7
+
   # Icons & Fonts
   cupertino_icons: ^1.0.8
   google_fonts: ^6.1.0
