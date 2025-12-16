@@ -186,6 +186,8 @@ class LiankoSettings {
   final bool autoRepeat;             // Bei Fehler automatisch wiederholen
   final int maxAttempts;             // Max Versuche pro Wort
   final bool parentRecordingEnabled; // Eltern-Aufnahme aktiviert
+  final bool hearingAidCheckEnabled; // Hörgeräte-Check vor YouTube/Videos
+  final bool requireBothEars;        // Beide Ohren müssen Hörgeräte haben
 
   LiankoSettings({
     required this.zeigSprechEnabled,
@@ -196,6 +198,8 @@ class LiankoSettings {
     required this.autoRepeat,
     required this.maxAttempts,
     required this.parentRecordingEnabled,
+    required this.hearingAidCheckEnabled,
+    required this.requireBothEars,
   });
 
   factory LiankoSettings.fromMap(Map<String, dynamic> map) {
@@ -208,6 +212,8 @@ class LiankoSettings {
       autoRepeat: map['autoRepeat'] ?? true,
       maxAttempts: map['maxAttempts'] ?? 3,
       parentRecordingEnabled: map['parentRecordingEnabled'] ?? false,
+      hearingAidCheckEnabled: map['hearingAidCheckEnabled'] ?? true,
+      requireBothEars: map['requireBothEars'] ?? false,
     );
   }
 
@@ -221,6 +227,8 @@ class LiankoSettings {
       autoRepeat: true,
       maxAttempts: 3,
       parentRecordingEnabled: false,
+      hearingAidCheckEnabled: true,  // Standard: AN
+      requireBothEars: false,        // Standard: Ein Ohr reicht
     );
   }
 
@@ -233,6 +241,8 @@ class LiankoSettings {
     'autoRepeat': autoRepeat,
     'maxAttempts': maxAttempts,
     'parentRecordingEnabled': parentRecordingEnabled,
+    'hearingAidCheckEnabled': hearingAidCheckEnabled,
+    'requireBothEars': requireBothEars,
   };
 }
 

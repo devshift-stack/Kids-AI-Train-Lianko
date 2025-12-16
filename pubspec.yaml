@@ -64,6 +64,12 @@ dependencies:
   # AI
   google_generative_ai: ^0.4.6
 
+  # Hearing Aid Detection (Lianko)
+  camera: ^0.10.5+9
+  google_mlkit_face_detection: ^0.10.0
+  image: ^4.1.7
+  url_launcher: ^6.2.5
+
   # Icons & Fonts
   cupertino_icons: ^1.0.8
   google_fonts: ^6.1.0
