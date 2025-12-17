@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../audiogram/audiogram_model.dart';
 
 /// Komplettes Settings-Model für ein Kind
 /// Wird vom ParentsDash gesteuert und in Echtzeit synchronisiert
@@ -12,6 +13,7 @@ class ChildSettingsModel {
   final AccessibilitySettings accessibility;
   final LiankoSettings liankoSettings;
   final LeaderboardConsent leaderboardConsent;
+  final AudiogramData? audiogram; // AI Audiogramm Reader Daten
 
   ChildSettingsModel({
     required this.id,
@@ -23,6 +25,7 @@ class ChildSettingsModel {
     required this.accessibility,
     required this.liankoSettings,
     required this.leaderboardConsent,
+    this.audiogram,
   });
 
   factory ChildSettingsModel.fromFirestore(DocumentSnapshot doc) {
@@ -37,6 +40,9 @@ class ChildSettingsModel {
       accessibility: AccessibilitySettings.fromMap(data['accessibilitySettings'] ?? {}),
       liankoSettings: LiankoSettings.fromMap(data['liankoSettings'] ?? {}),
       leaderboardConsent: LeaderboardConsent.fromMap(data['leaderboardConsent'] ?? {}),
+      audiogram: data['audiogram'] != null
+          ? AudiogramData.fromMap(data['audiogram'])
+          : null,
     );
   }
 
