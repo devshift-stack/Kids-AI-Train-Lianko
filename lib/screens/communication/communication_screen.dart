@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -459,7 +460,7 @@ class CategorySymbolsScreen extends ConsumerWidget {
     );
 
     // TODO: Push an Eltern wenn aktiviert
-    if (category.sendPushOnUse) {
+    if (category.sendPushOnUse && kDebugMode) {
       print('📱 Push an Eltern: Kind hat "${symbol.word}" ausgewählt');
     }
   }
@@ -628,7 +629,7 @@ class SubOptionsScreen extends ConsumerWidget {
                 ),
               );
 
-              if (category.sendPushOnUse) {
+              if (category.sendPushOnUse && kDebugMode) {
                 print('📱 Push an Eltern: Kind hat "${symbol.word}" ausgewählt');
               }
             },

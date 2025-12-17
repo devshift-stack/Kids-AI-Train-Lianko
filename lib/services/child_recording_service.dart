@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 // import 'package:record/record.dart';
@@ -52,11 +53,15 @@ class ChildRecordingService {
       // );
 
       // Simuliere Aufnahme-Start
-      print('🎙️ Aufnahme gestartet für: $symbolId');
+      if (kDebugMode) {
+        print('🎙️ Aufnahme gestartet für: $symbolId');
+      }
 
     } catch (e) {
       _state = RecordingState.idle;
-      print('Fehler beim Starten der Aufnahme: $e');
+      if (kDebugMode) {
+        print('Fehler beim Starten der Aufnahme: $e');
+      }
       rethrow;
     }
   }
@@ -73,7 +78,9 @@ class ChildRecordingService {
 
       // Simuliere Aufnahme-Ende
       final path = _currentRecordingPath;
-      print('🎙️ Aufnahme beendet: $path');
+      if (kDebugMode) {
+        print('🎙️ Aufnahme beendet: $path');
+      }
 
       if (path != null) {
         // In Cache speichern
@@ -90,7 +97,9 @@ class ChildRecordingService {
 
     } catch (e) {
       _state = RecordingState.idle;
-      print('Fehler beim Stoppen der Aufnahme: $e');
+      if (kDebugMode) {
+        print('Fehler beim Stoppen der Aufnahme: $e');
+      }
       return null;
     }
   }
@@ -108,7 +117,9 @@ class ChildRecordingService {
 
       if (recordingPath != null && await File(recordingPath).exists()) {
         // Kind's eigene Aufnahme abspielen
-        print('🔊 Spiele Kind-Aufnahme: $word');
+        if (kDebugMode) {
+          print('🔊 Spiele Kind-Aufnahme: $word');
+        }
         // TODO: Echte Wiedergabe
         // await _player.play(DeviceFileSource(recordingPath));
         // await _player.onPlayerComplete.first;
@@ -118,7 +129,9 @@ class ChildRecordingService {
 
       } else {
         // Fallback: TTS verwenden
-        print('🔊 Kein Aufnahme vorhanden, nutze TTS für: $word');
+        if (kDebugMode) {
+          print('🔊 Kein Aufnahme vorhanden, nutze TTS für: $word');
+        }
         // TODO: TTS Fallback
         // await FlutterTts().speak(word);
         await Future.delayed(const Duration(milliseconds: 500));
@@ -128,7 +141,9 @@ class ChildRecordingService {
 
     } catch (e) {
       _state = RecordingState.idle;
-      print('Fehler bei Wiedergabe: $e');
+      if (kDebugMode) {
+        print('Fehler bei Wiedergabe: $e');
+      }
     }
   }
 
@@ -185,10 +200,14 @@ class ChildRecordingService {
         }
       }
 
-      print('📁 ${_recordingCache.length} Aufnahmen geladen');
+      if (kDebugMode) {
+        print('📁 ${_recordingCache.length} Aufnahmen geladen');
+      }
 
     } catch (e) {
-      print('Fehler beim Laden der Aufnahmen: $e');
+      if (kDebugMode) {
+        print('Fehler beim Laden der Aufnahmen: $e');
+      }
     }
   }
 

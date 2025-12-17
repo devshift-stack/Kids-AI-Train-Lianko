@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -290,7 +291,9 @@ class RewardService extends StateNotifier<RewardState> {
       try {
         state = RewardState.fromJson(jsonDecode(json));
       } catch (e) {
-        print('Fehler beim Laden der Belohnungen: $e');
+        if (kDebugMode) {
+          print('Fehler beim Laden der Belohnungen: $e');
+        }
       }
     }
   }

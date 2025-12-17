@@ -527,33 +527,372 @@ class _BatterySettingsSheetState extends ConsumerState<BatterySettingsSheet> {
   }
 }
 
-/// Audiogramm Import Screen (Placeholder)
-class AudiogramImportScreen extends StatelessWidget {
+/// Audiogramm Import Screen
+class AudiogramImportScreen extends ConsumerStatefulWidget {
   const AudiogramImportScreen({super.key});
+
+  @override
+  ConsumerState<AudiogramImportScreen> createState() => _AudiogramImportScreenState();
+}
+
+class _AudiogramImportScreenState extends ConsumerState<AudiogramImportScreen> {
+  bool _isProcessing = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Audiogramm Import')),
-      body: const Center(
-        child: Text('Audiogramm Import Screen - Coming Soon'),
+      appBar: AppBar(
+        title: const Text('Audiogramm Import'),
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
       ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.teal.shade100, Colors.teal.shade50],
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.hearing, size: 48, color: Colors.teal.shade700),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Audiogramm hinzufügen',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal.shade800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Die App passt sich automatisch an die Hörschwelle deines Kindes an.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.teal.shade600),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Option 1: Foto aufnehmen
+            _buildImportOption(
+              icon: Icons.camera_alt,
+              title: 'Audiogramm fotografieren',
+              subtitle: 'Foto vom HNO-Arzt-Bericht machen',
+              onTap: _isProcessing ? null : () => _captureAudiogram(fromCamera: true),
+            ),
+            const SizedBox(height: 12),
+
+            // Option 2: Aus Galerie
+            _buildImportOption(
+              icon: Icons.photo_library,
+              title: 'Aus Galerie wählen',
+              subtitle: 'Vorhandenes Bild auswählen',
+              onTap: _isProcessing ? null : () => _captureAudiogram(fromCamera: false),
+            ),
+            const SizedBox(height: 12),
+
+            // Option 3: Manuelle Eingabe
+            _buildImportOption(
+              icon: Icons.edit,
+              title: 'Manuell eingeben',
+              subtitle: 'Werte selbst eintragen',
+              onTap: _isProcessing ? null : _showManualEntry,
+            ),
+            const SizedBox(height: 24),
+
+            // Info
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue.shade700),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Das Audiogramm wird nur lokal gespeichert und hilft der App, Sprache und Töne optimal anzupassen.',
+                      style: TextStyle(
+                        color: Colors.blue.shade700,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            if (_isProcessing) ...[
+              const SizedBox(height: 24),
+              const Center(child: CircularProgressIndicator()),
+              const SizedBox(height: 8),
+              const Center(child: Text('Verarbeite Audiogramm...')),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImportOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    VoidCallback? onTap,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: AppTheme.primaryColor),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  Future<void> _captureAudiogram({required bool fromCamera}) async {
+    setState(() => _isProcessing = true);
+    // TODO: Implementiere Bild-Aufnahme und AI-Analyse
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _isProcessing = false);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Audiogramm-Import wird bald verfügbar sein')),
+      );
+    }
+  }
+
+  void _showManualEntry() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Manuelle Eingabe wird bald verfügbar sein')),
     );
   }
 }
 
-/// Speech Therapy Screen (Placeholder)
-class SpeechTherapyScreen extends StatelessWidget {
+/// Speech Therapy Screen - Logopädie-Modus
+class SpeechTherapyScreen extends ConsumerStatefulWidget {
   const SpeechTherapyScreen({super.key});
+
+  @override
+  ConsumerState<SpeechTherapyScreen> createState() => _SpeechTherapyScreenState();
+}
+
+class _SpeechTherapyScreenState extends ConsumerState<SpeechTherapyScreen> {
+  final _codeController = TextEditingController();
+  bool _isLinking = false;
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Logopädie-Modus')),
-      body: const Center(
-        child: Text('Logopädie-Modus Screen - Coming Soon'),
+      appBar: AppBar(
+        title: const Text('Logopädie-Modus'),
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.purple.shade100, Colors.purple.shade50],
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.record_voice_over, size: 48, color: Colors.purple.shade700),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Mit Logopäden verbinden',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple.shade800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Der Logopäde kann spezielle Übungen zuweisen und den Fortschritt verfolgen.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.purple.shade600),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Code-Eingabe
+            Text(
+              'Therapeuten-Code eingeben',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _codeController,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(
+                hintText: 'z.B. ABC123',
+                prefixIcon: const Icon(Icons.key),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: Colors.grey.shade100,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _isLinking ? null : _linkTherapist,
+              icon: _isLinking
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(Icons.link),
+              label: Text(_isLinking ? 'Verbinde...' : 'Verbinden'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Info-Karten
+            _buildInfoCard(
+              icon: Icons.assignment,
+              title: 'Übungen erhalten',
+              description: 'Der Logopäde weist individuelle Übungen für bestimmte Laute zu.',
+            ),
+            const SizedBox(height: 12),
+            _buildInfoCard(
+              icon: Icons.insights,
+              title: 'Fortschritt teilen',
+              description: 'Der Logopäde sieht, welche Laute gut klappen und wo Übung nötig ist.',
+            ),
+            const SizedBox(height: 12),
+            _buildInfoCard(
+              icon: Icons.security,
+              title: 'Datenschutz',
+              description: 'Nur der verknüpfte Logopäde hat Zugriff auf die Übungsdaten.',
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade100,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.purple.shade50,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: Colors.purple.shade700),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _linkTherapist() async {
+    final code = _codeController.text.trim();
+    if (code.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bitte Code eingeben')),
+      );
+      return;
+    }
+
+    setState(() => _isLinking = true);
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _isLinking = false);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Logopädie-Verknüpfung wird bald verfügbar sein')),
+      );
+    }
   }
 }
 
