@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,77 +7,118 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'firebase_options.dart';
 
 import 'core/theme/app_theme.dart';
 import 'services/age_adaptive_service.dart';
 import 'services/user_profile_service.dart';
+import 'services/analytics_service.dart';
 import 'screens/language_selection/language_selection_screen.dart';
 import 'screens/profile_selection/profile_selection_screen.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // Errors in runZonedGuarded werden an Crashlytics gesendet
+  runZonedGuarded<Future<void>>(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+    // Initialize Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
-  // Initialize localization
-  await EasyLocalization.ensureInitialized();
+    // ============================================================
+    // CRASHLYTICS - Crash Reporting
+    // ============================================================
+    // Flutter Errors abfangen
+    FlutterError.onError = (errorDetails) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+    };
 
-  // Initialize Hive for local storage
-  await Hive.initFlutter();
+    // Async Errors abfangen
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
 
-  // Initialize SharedPreferences
-  final prefs = await SharedPreferences.getInstance();
+    // Crashlytics nur in Production aktivieren
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
 
-  // Set preferred orientations for children
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+    // ============================================================
+    // ANALYTICS - User Tracking
+    // ============================================================
+    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(!kDebugMode);
 
-  // Set system UI overlay style
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: AppTheme.backgroundColor,
-      systemNavigationBarIconBrightness: Brightness.dark,
-    ),
-  );
+    // ============================================================
+    // PERFORMANCE - App Performance Monitoring
+    // ============================================================
+    await FirebasePerformance.instance.setPerformanceCollectionEnabled(!kDebugMode);
 
-  runApp(
-    EasyLocalization(
-      supportedLocales: const [
-        Locale('bs'), // Bosnian (default)
-        Locale('en'), // English
-        Locale('hr'), // Croatian
-        Locale('sr'), // Serbian
-        Locale('de'), // German
-        Locale('tr'), // Turkish
-      ],
-      path: 'assets/locales',
-      fallbackLocale: const Locale('bs'),
-      startLocale: const Locale('bs'),
-      child: ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
-        child: const AlankoApp(),
+    if (kDebugMode) {
+      print('🔥 Firebase Services initialisiert (Debug-Mode: Tracking deaktiviert)');
+    }
+
+    // Initialize localization
+    await EasyLocalization.ensureInitialized();
+
+    // Initialize Hive for local storage
+    await Hive.initFlutter();
+
+    // Initialize SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+
+    // Set preferred orientations for children
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
+    // Set system UI overlay style
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: AppTheme.backgroundColor,
+        systemNavigationBarIconBrightness: Brightness.dark,
       ),
-    ),
-  );
+    );
+
+    runApp(
+      EasyLocalization(
+        supportedLocales: const [
+          Locale('bs'), // Bosnian (default)
+          Locale('en'), // English
+          Locale('hr'), // Croatian
+          Locale('sr'), // Serbian
+          Locale('de'), // German
+          Locale('tr'), // Turkish
+        ],
+        path: 'assets/locales',
+        fallbackLocale: const Locale('bs'),
+        startLocale: const Locale('bs'),
+        child: ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+          ],
+          child: const LiankoApp(),
+        ),
+      ),
+    );
+  }, (error, stack) {
+    // Unhandled Errors an Crashlytics senden
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+  });
 }
 
-class AlankoApp extends ConsumerWidget {
-  const AlankoApp({super.key});
+class LiankoApp extends ConsumerWidget {
+  const LiankoApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      title: 'Alanko AI',
+      title: 'Lianko AI',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       localizationsDelegates: context.localizationDelegates,
